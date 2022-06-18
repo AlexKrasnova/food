@@ -190,19 +190,9 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const getResource = async (url) => {
-        const res = await fetch(url);
-
-        if (!res.ok) {
-            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
-        }
-
-        return await res.json();
-    };
-
-    getResource('http://localhost:3000/menu')
+    axios.get('http://localhost:3000/menu')
         .then(data => {
-            data.forEach(({img, altimg, title, descr, price}) => {
+            data.data.forEach(({img, altimg, title, descr, price}) => {
                 new MenuItem(title, descr, price, img, altimg, '.menu .container', 'menu__item').render();
             });
         });
@@ -245,20 +235,20 @@ window.addEventListener('DOMContentLoaded', () => {
             form.insertAdjacentElement('afterend', statusMessage);
 
             const formData = new FormData(form);
-            const json = JSON.stringify(Object.fromEntries(formData.entries()));
+            const object = Object.fromEntries(formData.entries());
             
-            postData('http://localhost:3000/requests', json)
-            .then(data => {
-                console.log(data);
-                showThanksModal(messages.success);
-                statusMessage.remove();
-            })
-            .catch(() => {
-                showThanksModal(messages.failure);
-            })
-            .finally(() => {
-                form.reset();
-            });
+            axios.post('http://localhost:3000/requests', object)
+                .then(data => {
+                    console.log(data.data);
+                    showThanksModal(messages.success);
+                    statusMessage.remove();
+                })
+                .catch(() => {
+                    showThanksModal(messages.failure);
+                })
+                .finally(() => {
+                    form.reset();
+                });
         });
     }
 
