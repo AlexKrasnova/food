@@ -192,7 +192,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     axios.get('http://localhost:3000/menu')
         .then(data => {
-            data.data.forEach(({img, altimg, title, descr, price}) => {
+            data.data.forEach(({
+                img,
+                altimg,
+                title,
+                descr,
+                price
+            }) => {
                 new MenuItem(title, descr, price, img, altimg, '.menu .container', 'menu__item').render();
             });
         });
@@ -236,7 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             const formData = new FormData(form);
             const object = Object.fromEntries(formData.entries());
-            
+
             axios.post('http://localhost:3000/requests', object)
                 .then(data => {
                     console.log(data.data);
@@ -279,18 +285,20 @@ window.addEventListener('DOMContentLoaded', () => {
     // Slider
 
     const slides = document.querySelectorAll('.offer__slide'),
-          total = document.querySelector('#total'),
-          current = document.querySelector('#current'),
-          previous = document.querySelector('.offer__slider-prev'),
-          next = document.querySelector('.offer__slider-next'),
-          slidesWrapper = document.querySelector(".offer__slider-wrapper"),
-          slidesField = document.querySelector(".offer__slider-inner"),
-          width = window.getComputedStyle(slidesWrapper).width;
+        slider = document.querySelector('.offer__slider'),
+        total = document.querySelector('#total'),
+        current = document.querySelector('#current'),
+        previous = document.querySelector('.offer__slider-prev'),
+        next = document.querySelector('.offer__slider-next'),
+        slidesWrapper = document.querySelector(".offer__slider-wrapper"),
+        slidesField = document.querySelector(".offer__slider-inner"),
+        width = window.getComputedStyle(slidesWrapper).width;
 
     let slideIndex = 1;
     let offset = 0;
 
-    setCurrent(slideIndex);
+    current.textContent = addZeroIfNeeded(slideIndex);
+    setTotal();
 
     slidesField.style.width = 100 * slides.length + '%';
     slidesField.style.display = 'flex';
@@ -302,11 +310,29 @@ window.addEventListener('DOMContentLoaded', () => {
         slide.style.width = width;
     });
 
+    slider.style.position = 'relative';
+
+    const indicators = document.createElement('ol'),
+          dots = [];
+    indicators.classList.add('carousel-indicators');
+    slider.append(indicators);
+
+    for (let i = 0; i < slides.length; i++) {
+        const dot = document.createElement('li');
+        dot.classList.add('dot');
+        if (slideIndex === i + 1) {
+            dot.classList.add('dot-active');
+        }
+        dot.setAttribute('data-slide-to', i + 1);
+        indicators.append(dot);
+        dots.push(dot);
+    }
+
     next.addEventListener('click', () => {
-        if (offset == +width.slice(0, width.length -2) * (slides.length -1)) {
+        if (offset == +width.slice(0, width.length - 2) * (slides.length - 1)) {
             offset = 0;
         } else {
-            offset += +width.slice(0, width.length -2);
+            offset += +width.slice(0, width.length - 2);
         }
 
         slidesField.style.transform = `translateX(-${offset}px)`;
@@ -322,9 +348,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     previous.addEventListener('click', () => {
         if (offset == 0) {
-            offset = +width.slice(0, width.length -2) * (slides.length -1);
+            offset = +width.slice(0, width.length - 2) * (slides.length - 1);
         } else {
-            offset -= +width.slice(0, width.length -2);
+            offset -= +width.slice(0, width.length - 2);
         }
 
         slidesField.style.transform = `translateX(-${offset}px)`;
@@ -338,7 +364,22 @@ window.addEventListener('DOMContentLoaded', () => {
         setCurrent(slideIndex);
     });
 
-    function setCurrent(number) {
-        current.textContent = addZeroIfNeeded(number);
+    dots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            slideIndex = dot.dataset.slideTo;
+            setCurrent(slideIndex);
+            offset = +width.slice(0, width.length - 2) * (slideIndex - 1);
+            slidesField.style.transform = `translateX(-${offset}px)`;
+        });
+    });
+
+    function setCurrent(index) {
+        current.textContent = addZeroIfNeeded(index);
+        dots.forEach(dot => dot.classList.remove('dot-active'));
+        dots[index - 1].classList.add('dot-active');
+    }
+
+    function setTotal() {
+        total.textContent = addZeroIfNeeded(slides.length);
     }
 });
